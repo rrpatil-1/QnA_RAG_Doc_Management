@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  pgvector:
+    image: pgvector/pgvector:pg17
+    container_name: pgvector
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vectordb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vectordb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pg-network
+
+#   ollama:
+#     image: ollama/ollama
+#     container_name: ollama
+#     ports:
+#       - "11434:11434"
+#     environment:
+#       OLLAMA_ORIGINS: "http://localhost:3000"  # Adjust based on your frontend
+#     command: ["ollama", "run", "llama3:8b"]  # Run the llama3:8b model on startup
+#     networks:
+#       - pg-network
+
+# volumes:
+#   pgdata:
+
+# networks:
+#   pg-network:
+#     driver: bridge
