@@ -9,3 +9,7 @@ wheels/
 # Virtual environments
 .venv
 .env
+/backend/testing
+
+# logs
+app.log

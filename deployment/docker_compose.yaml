@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   pgvector:
@@ -21,20 +21,20 @@ services:
     networks:
       - pg-network
 
-#   ollama:
-#     image: ollama/ollama
-#     container_name: ollama
-#     ports:
-#       - "11434:11434"
-#     environment:
-#       OLLAMA_ORIGINS: "http://localhost:3000"  # Adjust based on your frontend
-#     command: ["ollama", "run", "llama3:8b"]  # Run the llama3:8b model on startup
-#     networks:
-#       - pg-network
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_ORIGINS: "http://localhost:3000"  # Adjust based on your frontend
+    command: ["ollama", "run", "llama3.1:8b"]  # Run the llama3:8b model on startup
+    networks:
+      - pg-network
 
-# volumes:
-#   pgdata:
+volumes:
+  pgdata:
 
-# networks:
-#   pg-network:
-#     driver: bridge
+networks:
+  pg-network:
+    driver: bridge

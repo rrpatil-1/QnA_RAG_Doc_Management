@@ -1,2 +1,10 @@
 psycopg2-binary
+psycopg-binary
 python-dotenv
+pgvector
+langchain
+langchain-ollama
+langchain_postgres
+langchain-community
+pypdf
+setuptools
