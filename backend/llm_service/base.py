@@ -1,4 +1,7 @@
 
+from abc import ABC, abstractmethod
+
+from typing import List, Dict, Any, Optional
 
 class BaseLLMService(ABC):
     """
@@ -32,11 +35,8 @@ class BaseLLMService(ABC):
             Generated text response
         """
         pass
-
- 
-
     @abstractmethod
-    async def chat_completion(
+    async def a_generate_response(
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.7,

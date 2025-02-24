@@ -7,4 +7,5 @@ langchain-ollama
 langchain_postgres
 langchain-community
 pypdf
+rank_bm25
 setuptools

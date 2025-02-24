@@ -1,88 +1,68 @@
-from abc import ABC, abstractmethod
+import os
 from typing import List, Dict, Any, Optional
 from backend.llm_service.base import BaseLLMService
+from langchain_core.prompts import PromptTemplate
+from langchain_ollama.llms import OllamaLLM
+from langchain_ollama import ChatOllama
+from langchain.chains import LLMChain
 from dotenv import load_dotenv
 load_dotenv()
-base_url = os.getenv("OLLAMA_API_BASE_URL")
 
+base_url = os.getenv("ollama_url")
+
+model_name = os.getenv("ollama_model")
+max_tokens = int(os.getenv("LLM_MAX_TOKENS"))
+temperature = float(os.getenv("LLM_TEMPERATURE"))
 class OllamaService(BaseLLMService):
-    def __init__(self, model_name: str, api_base: str = "http://localhost:11434"):
+    def __init__(self):
         self.model_name = model_name
-        self.api_base = api_base
+        self.api_base = base_url
         self.client = None
+        self.max_tokens = max_tokens
+        self.temperature = temperature
         self.initialize_model()
 
     def initialize_model(self) -> None:
         """Initialize Ollama client"""
-        from langchain.llms import Ollama
-        self.client = Ollama(
+        
+        self.client = ChatOllama(
             model=self.model_name,
-            base_url=self.api_base
+            base_url=self.api_base,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens
         )
 
-    async def generate_response(
+    def generate_response(
         self,
         prompt: str,
-        temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-        stop_sequences: Optional[List[str]] = None
+        messages: str,
+        context: str,
     ) -> str:
         try:
-            response = await self.client.agenerate(
-                prompts=[prompt],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                stop=stop_sequences
-            )
-            return response.generations[0].text
-        except Exception as e:
-            raise Exception(f"Error generating response: {str(e)}")
+            prompt = PromptTemplate(input_variables=["question","context"],template=prompt)
 
-    async def chat_completion(
+            chain = prompt | self.client
+            response = chain.invoke({"question": messages,"context":context})
+            return response
+        except Exception as e:
+            return f"error in generating response: {e}"
+
+    async def a_generate_response(
         self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.7,
-        max_tokens: Optional[int] = None
-    ) -> Dict[str, Any]:
+        messages: str,
+        prompt: str,
+        context:str
+    ):
         try:
-            from langchain.chat_models import ChatOllama
-            chat_model = ChatOllama(
-                model=self.model_name,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            response = await chat_model.agenerate([messages])
-            return {
-                "message": response.generations[0][0].text,
-                "finish_reason": "stop"
-            }
+            # prompt = PromptTemplate(input_variables=["question","context"],template=prompt)
+
+            # chain = prompt | self.client
+            # response = chain.invoke({"question": messages,"context":context})
+            # return response
+            response =  self.generate_response(prompt=prompt,messages=messages,context=context)
+            return response
         except Exception as e:
-            raise Exception(f"Error in chat completion: {str(e)}")
+            return f"error in generating response: {e}"
 
 
-# Example usage:
-async def main():
-    # Initialize the LLM service
-    llm_service = OllamaService(model_name="llama2")
-    
-    # Generate a response
-    response = await llm_service.generate_response(
-        prompt="What is machine learning?",
-        temperature=0.7
-    )
-    print(f"Generated response: {response}")
-    
-    # Generate embeddings
-    embeddings = await llm_service.generate_embeddings(
-        texts=["Hello world", "How are you?"]
-    )
-    print(f"Generated embeddings: {embeddings}")
-    
-    # Chat completion
-    chat_response = await llm_service.chat_completion(
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "What is the capital of France?"}
-        ]
-    )
-    print(f"Chat response: {chat_response}")
+

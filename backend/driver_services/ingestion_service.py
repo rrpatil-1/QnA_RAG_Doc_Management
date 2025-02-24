@@ -35,11 +35,11 @@ class IngestionService:
 
         except Exception as e:
             logger.log(f"Error processing {file_path}: {e}",level="error")
-            return "error: {}".format(e)
+            return f"error: {e}"
 
 # Usage example
 if __name__ == "__main__":
-    file = os.path.join(os.getcwd(), "sample_doc\\Attension_Is_All_You_Need.pdf")
+    file = os.path.join(os.getcwd(), "sample_doc\\deepseek_research.pdf")
    
     ingestion_service = IngestionService()
     ingestion_service.process_and_insert(file)

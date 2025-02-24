@@ -17,6 +17,7 @@ DATABASE_POSTGRES = os.getenv("DATABASE_POSTGRES")
 HOST_POSTGRES = os.getenv("HOST_POSTGRES")
 PORT_POSTGRES = os.getenv("PORT_POSTGRES")
 password_postgres = os.getenv("PASSWORD_POSTGRES")
+SCHEME_POSTGRES = os.getenv("SCHEME_POSTGRES")
 
 encoded_password = password_postgres.encode('utf-8')
 escape_password = urllib.parse.quote(encoded_password)
@@ -64,14 +65,25 @@ class DatabaseManager:
         self.scheme_name = SCHEME_POSTGRES
 
     def create_table(self, table_name, schema):
-        query = f"CREATE TABLE IF NOT EXISTS {table_name} ({schema});"
-        self.connection.execute_query(query)
+        try:
+            query = f"CREATE TABLE IF NOT EXISTS {table_name} ({schema});"
+            self.connection.execute_query(query)
+            logger.log(f"Table {table_name} created successfully.", level="info")
+        except Exception as e:
+            logger.log(f"Error creating table: {e}", level="error")
+            return f"Error creating table: {e}"
+            
+
 
     def insert_data(self, table_name, data):
-        columns = ', '.join(data.keys())
-        values = ', '.join(['%s'] * len(data))
-        query = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-        self.connection.execute_query(query, list(data.values()))
+        try:
+            columns = ', '.join(data.keys())
+            values = ', '.join(['%s'] * len(data))
+            query = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
+            self.connection.execute_query(query, list(data.values()))
+        except Exception as e: 
+            logger.log(f"Error inserting data: {e}", level="error")
+            return f"Error inserting data: {e}"
 
     def fetch_data(self, table_name, conditions=None):
         query = f"SELECT * FROM {table_name}"

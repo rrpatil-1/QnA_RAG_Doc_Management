@@ -49,6 +49,4 @@ class CustomLogger:
             self.critical(message)
         else:
             self.info(message)
-# Usage example
-logger = CustomLogger(__name__)
-logger.info("This is an info message")
+# Usage exampl
