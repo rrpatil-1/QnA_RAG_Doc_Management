@@ -37,12 +37,12 @@ class QAService:
             logger.log(f"error getting context: {e}", level="error")
             return f"error: {e}"
         
-    async def get_answer(self, question:str,docs=None):
+    async def get_answer(self, question:str,filter=None):
         try:
             with open(self.file,'r') as f:
                 prompt_json  = json.load(f)
                 prompt = prompt_json['system']            
-            context = self.get_context(question,docs)
+            context = self.get_context(question,filter)
             if type(context) is str and context.startswith("error"):
                 raise Exception(context)
             

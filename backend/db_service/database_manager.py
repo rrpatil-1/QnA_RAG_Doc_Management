@@ -91,13 +91,4 @@ class DatabaseManager:
             query += f" WHERE {conditions}"
         return self.connection.execute_query(query)
 
-# # Usage example
-# if __name__ == "__main__":
-#     conn = PostgresConnection(host="localhost", database="mydb", user="user", password="password")
-#     conn.connect()
-#     db_manager = DatabaseManager(conn)
-#     db_manager.create_table("example_table", "id SERIAL PRIMARY KEY, name VARCHAR(100)")
-#     db_manager.insert_data("example_table", {"name": "John Doe"})
-#     data = db_manager.fetch_data("example_table")
-#     print(data)
-#     conn.close()
+

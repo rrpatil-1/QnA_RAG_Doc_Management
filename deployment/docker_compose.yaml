@@ -1,4 +1,4 @@
-# version: '3.8'
+version: '3.8'
 
 services:
   pgvector:
@@ -32,6 +32,20 @@ services:
     networks:
       - pg-network
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: QnARAG
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    networks:
+      - pg-network
+    
 volumes:
   pgdata:
 

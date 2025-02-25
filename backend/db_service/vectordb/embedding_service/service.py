@@ -17,6 +17,10 @@ RETRIVE_DOC_LIMIT = int(os.getenv("DOC_LIMIT"))
 
 class EmbeddingService(VectorDbServicesAbstract):
     def __init__(self):
+
+        """
+        Initialize the EmbeddingService class
+        """
         self.PASSWORD_POSTGRES = os.getenv("PASSWORD_POSTGRES")
         self.USERNAME_POSTGRES = os.getenv("USERNAME_POSTGRES")
         self.DATABASE_POSTGRES = os.getenv("DATABASE_POSTGRES")
@@ -26,12 +30,12 @@ class EmbeddingService(VectorDbServicesAbstract):
         self.collection_name = os.getenv("collection_name")
         self.model_name = os.getenv("ollama_model")
 
-
+        self.embeding = os.getenv("embedding_size")
         connection_string = f"postgresql+psycopg://{self.USERNAME_POSTGRES}:{self.escape_password}@{self.HOST_POSTGRES}:{self.PORT_POSTGRES}/{self.DATABASE_POSTGRES}"
         
         self.embeding= OllamaEmbeddings(model=self.model_name)
 
-        self.vectore_store = PGVector(connection=connection_string, embeddings=self.embeding, collection_name=self.collection_name ,use_jsonb=True,embedding_length=4096)
+        self.vectore_store = PGVector(connection=connection_string, embeddings=self.embeding, collection_name=self.collection_name ,use_jsonb=True,embedding_length=self.embeding)
         self.vectore_store.create_tables_if_not_exists()
         self.engine = create_engine(connection_string)
 

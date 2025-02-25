@@ -20,6 +20,14 @@ class IngestionService:
         self.max_batch_size = max_batch_size
 
     def process_and_insert(self, file_path):
+        """
+        Process a PDF file and insert its chunks into the vector database
+        Args:
+            file_path: Path to the PDF file
+        
+        Returns:
+            str: Success message if successful, error message if not
+         """
         try:
             chunks = self.pdf_processor.process_pdf(file_path)
             self.max_batch_size = len(chunks) if len(chunks)<self.max_batch_size else self.max_batch_size
@@ -36,10 +44,4 @@ class IngestionService:
         except Exception as e:
             logger.log(f"Error processing {file_path}: {e}",level="error")
             return f"error: {e}"
-
-# Usage example
-if __name__ == "__main__":
-    file = os.path.join(os.getcwd(), "sample_doc\\deepseek_research.pdf")
-   
-    ingestion_service = IngestionService()
-    ingestion_service.process_and_insert(file)
+        
