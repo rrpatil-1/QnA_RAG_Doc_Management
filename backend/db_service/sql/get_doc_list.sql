@@ -1,0 +1,1 @@
+SELECT DISTINCT(langchain_pg_embedding.cmetadata->>'source') FROM langchain_pg_embedding;

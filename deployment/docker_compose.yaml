@@ -21,20 +21,55 @@ services:
     networks:
       - pg-network
 
-#   ollama:
-#     image: ollama/ollama
-#     container_name: ollama
-#     ports:
-#       - "11434:11434"
-#     environment:
-#       OLLAMA_ORIGINS: "http://localhost:3000"  # Adjust based on your frontend
-#     command: ["ollama", "run", "llama3:8b"]  # Run the llama3:8b model on startup
-#     networks:
-#       - pg-network
+  ollama:
+    build:
+      context: ../
+      dockerfile: ollama/Dockerfile
+    container_name: local_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - local_ollama_data:/root/.ollama
+    environment:
+    - OLLAMA_HOST=0.0.0.0
+    # OLLAMA_ORIGINS: "http://localhost:3000"  # Adjust based on your frontend
+    command: ollama serve  # Run the llama3:8b model on startup
+    healthcheck:
+      test: ollama list || exit 1
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pg-network
 
-# volumes:
-#   pgdata:
+  backend:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+    container_name: QnARAG
+    env_file:
+      - ../.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - app_v:/app
+    depends_on:
+      pgvector:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    networks:
+      - pg-network
+    restart: on-failure:5
+    
+volumes:
+  local_ollama_data:
+    # driver:local
+  pgdata:
+  app_v:
+  
 
-# networks:
-#   pg-network:
-#     driver: bridge
+networks:
+  pg-network:
+    driver: bridge
