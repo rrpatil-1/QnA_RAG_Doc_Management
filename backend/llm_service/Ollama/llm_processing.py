@@ -13,6 +13,7 @@ base_url = os.getenv("ollama_url")
 model_name = os.getenv("ollama_model")
 max_tokens = int(os.getenv("LLM_MAX_TOKENS"))
 temperature = float(os.getenv("LLM_TEMPERATURE"))
+
 class OllamaService(BaseLLMService):
     def __init__(self):
         self.model_name = model_name
@@ -42,7 +43,12 @@ class OllamaService(BaseLLMService):
             prompt = PromptTemplate(input_variables=["question","context"],template=prompt)
 
             chain = prompt | self.client
-            response = chain.invoke({"question": messages,"context":context})
+            response = chain.invoke(
+                {
+                "question": messages,
+                "context":context
+                }
+            )
             return response
         except Exception as e:
             return f"error in generating response: {e}"

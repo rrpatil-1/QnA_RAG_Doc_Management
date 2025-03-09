@@ -3,9 +3,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List, Optional, Dict
 import os
 import shutil
+
+import requests
 from backend.document_process.base import DocProcessorBase
 from dotenv import load_dotenv
 
+from backend.utils.custom_exceptions import InvalidURLException
 from backend.utils.logger import CustomLogger
 load_dotenv()
 
@@ -38,12 +41,13 @@ class PDFProcessor(DocProcessorBase):
         """
         try:
             # Load PDF
+            
             loader = PyPDFLoader(pdf_path)
             documents = loader.load()
             
             
             # Extract filename for metadata
-            filename = os.path.basename(pdf_path)
+            filename = pdf_path.split('/')[-1]
             
             # Add source metadata to each document
             for doc in documents:
@@ -55,6 +59,5 @@ class PDFProcessor(DocProcessorBase):
             return chunks
         
         except Exception as e:
-            logger.log(f"Error during processing PDF {pdf_path}: {str(e)}", level="error")
-            print(f"Error processing PDF {pdf_path}: {str(e)}")
-            return []
+            logger.log(f"Error during processing PDF {pdf_path}: {e}", level="error")
+            return "error processing pdf:{e}"

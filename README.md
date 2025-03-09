@@ -6,7 +6,6 @@ This project is a Question and Answer (QnA) system that uses Retrieval-Augmented
 ## Prerequisites
 - Docker
 - Python 3.12 or higher
-- AWS account (for deployment)
 
 ## Setup
 
@@ -15,6 +14,81 @@ This project is a Question and Answer (QnA) system that uses Retrieval-Augmented
 git clone https://github.com/rrpatil-1/QnA_RAG_Doc_Management.git
 cd QnA_RAG_Doc_Management
 ```
+# Folder Structure
+
+## Root Directory
+- __init__.py
+- 📄 .env
+- 📄 .gitignore
+- 📄 app.py
+
+- 📁 backend/
+  - 📄 __init__.py
+
+  - 📁 db_service/
+    - 📄 __init__.py
+    - 📁 sql/
+      - 📄 create_table.sql
+      - 📄 get_doc_list.sql 
+
+    - 📁 vectordb/
+        - 📄 __init__.py
+        - 📄 base.py
+      - 📁 embedding_service/
+        - 📄 service.py
+        - 📄 __init__.py
+
+
+  - 📁 document_process/
+    - 📄 __init__.py
+    - 📄 base.py
+    - 📄 process_pdfdoc.py
+
+  - 📁 driver_services/
+    - 📄 __init__.py
+    - 📄 ingestion_service.py
+    - 📄 list_available_doc.py
+    - 📄 qa_service.py
+
+
+  - 📁 llm_service/
+    - 📄 __init__.py
+    - 📄 base.py
+    - 📁 Ollama/
+      - 📄 llm_processing.py
+      - 📄 __init__.py
+
+  - 📁 testing/
+    - 📄 test_llm.py
+    - 📄 test_ingestion.py
+    - 📄 test_doc_processor.py
+    - 📄 test_db.py
+
+  - 📁 utils/
+    - 📄 __init__.py
+    - 📄 custom_exceptions.py
+    - 📄 logger.py
+    - 📄 request_param_check.py
+
+  - 📄 Dockerfile
+  - 📄 setup.py
+
+- 📁 deployment/
+  - 📄 docker_compose.yaml
+
+- 📁 ollama/
+  - 📄 Dockerfile # for ollama installation
+  - 📄 pull-llama3.sh # Run the llama3:8b model on startup
+
+- 📁 prompts/
+  - 📄 qa_prompt.json
+
+- 📄 pyproject.toml
+- 📄 README.md
+- 📄 requirements.txt
+- 📁 sample_doc/
+- 📄 setup.py
+
 
 ### 2. Install Docker
 If Docker are not installed, follow these steps:
@@ -55,6 +129,7 @@ embedding_size=4096
 
 ### 4. Update the Dockerfile
 Ensure your Dockerfile is correctly set up to build the backend service. Here is an example:
+
 ```Dockerfile
 # Use an official Python runtime as a parent image
 FROM python:3.12-slim
@@ -113,13 +188,19 @@ services:
       - pg-network
 
   ollama:
-    image: ollama/ollama
-    container_name: ollama
+    build:
+      context: ../
+      dockerfile: ollama/Dockerfile
+    container_name: local_ollama
     ports:
       - "11434:11434"
+    volumes:
+      - local_ollama_data:/root/.ollama
+    # entrypoint: ['usr/bin/bash','pull-llama3.sh']
     environment:
-      OLLAMA_ORIGINS: "http://localhost:3000"
-    command: ["ollama", "run", "llama3.1:8b"]
+    - OLLAMA_HOST=0.0.0.0
+    # OLLAMA_ORIGINS: "http://localhost:3000"  # Adjust based on your frontend
+    command: ollama serve  
     networks:
       - pg-network
 
@@ -129,16 +210,20 @@ services:
       dockerfile: backend/Dockerfile
     container_name: QnARAG
     env_file:
-      - .env
+      - ..\.env
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - app_v:./app
     networks:
       - pg-network
     
 volumes:
+  local_ollama_data:
+    # driver:local
   pgdata:
+  app_v:
+  
 
 networks:
   pg-network:
@@ -147,12 +232,26 @@ networks:
 
 ### 6. Build and Run the Docker Containers
 ```sh
-docker-compose up --build
+docker-compose -f deployment\docker_compose.yaml up --build -d
 ```
 
 ## API Documentation
 
-### 1. Get Answer
+## Response Using API endpoint
+1. Download the postman application to test the api [postman](https://www.postman.com/downloads/)
+
+### 1. check model is available for serving
+**Endpoint:** `GET /ollamahealth`
+
+
+**Response:**
+```json
+{
+  "status": "model ready to accept response"
+}
+```
+
+### 2. Get Answer
 **Endpoint:** `POST /qa_service`
 
 `filter` allows you to select the file once ingested
@@ -160,7 +259,7 @@ docker-compose up --build
 **Request Body:**
 ```json
 {
-  "message": "What is the attention mechanism in neural networks?"
+  "response": "What is the attention mechanism in neural networks?"
   "filter":""
   
 }
@@ -173,7 +272,7 @@ docker-compose up --build
 }
 ```
 
-### 2. ingest_documents
+### 3. ingest_documents
 **Endpoint:** `POST /ingest_documents`
 
 **Request Body:**
@@ -187,6 +286,24 @@ docker-compose up --build
 ```json
 {"message": "Documents ingested successfully","status":200}
 ```
+
+### 4. list_documents
+
+**Endpoint:** `GET /list_documents`
+
+**Response:**
+```json
+{
+  "message": [
+    "Attension_Is_All_You_Need.pdf"
+  ]
+}
+```
+
+## Instruction for Faster Inferencing
+1. Deploy the application on cloud use the vm with gpu minimum 16gb of RAM
+2. Modify the `docker_compose.yaml` file add gpu in ollma service
+3. use small model like llama2:7b or gemma2b
 
 ## Deployment on AWS
 
@@ -202,10 +319,7 @@ docker-compose up --build
 5. Documents for codepipeline [doc](https://aws.amazon.com/getting-started/hands-on/continuous-deployment-pipeline/)
 
 
-## Response Using API endpoint
-1. Download the postman application to test the api [postman](https://www.postman.com/downloads/)
-
-### 7. Monitor and Scale
+### Monitor and Scale
 Monitor the services using CloudWatch and scale the services as needed.
 
 ## Conclusion

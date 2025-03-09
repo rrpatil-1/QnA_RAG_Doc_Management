@@ -11,7 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy only the backend code into the container at /app
-COPY backend /app/backend
+COPY backend /app/backend/
+COPY prompts /app/prompts/
 COPY app.py /app/app.py
 
 # Copy the .env file into the container

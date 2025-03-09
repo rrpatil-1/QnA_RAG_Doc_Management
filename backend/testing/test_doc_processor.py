@@ -1,15 +1,24 @@
+import os,sys
+from pathlib import Path
 
+# Get the absolute path of the project root directory
+ROOT = Path(__file__).parent.parent.parent
+sys.path.append(str(ROOT))
 from backend.document_process.process_pdfdoc import PDFProcessor
-import os
+import pytest
 
-def main():
-    try:
-        pdfProcess = PDFProcessor()
+@pytest.fixture
+def pdf_processor():
+    return PDFProcessor()
 
-        file =os.path.join(os.getcwd(), "sample_doc\\deepseek_research.pdf")
+def test_process_pdf_success(pdf_processor):
+    file =os.path.join(os.getcwd(), "sample_doc\\Attension_Is_All_You_Need-2.pdf")
+    chunk = pdf_processor.process_pdf(file)
+    assert len(chunk) > 0
 
-        chunk = pdfProcess.process_pdf(file)
+def test_process_pdf_failure(pdf_processor):
+    file = os.path.join(os.getcwd(), "sample_doc\\Attension_Is_All_You_Need-1.pdf")
+    chunk = pdf_processor.process_pdf(file)
+    assert chunk.startswith("error")
 
-        print(chunk)
-    except Exception as e:
-        print(f"Error processing PDF: {str(e)}")
+
